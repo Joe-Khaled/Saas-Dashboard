@@ -1,0 +1,23 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Users] ADD [tempAscii] NVARCHAR(1000),
+[tempBase32] NVARCHAR(1000),
+[tempHex] NVARCHAR(1000),
+[tempOtpUrl] NVARCHAR(1000),
+[twofaEnabled] BIT NOT NULL CONSTRAINT [Users_twofaEnabled_df] DEFAULT 0;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

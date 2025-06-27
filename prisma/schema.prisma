@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model AuditLogs {
+  Id        Int       @id(map: "PK__AuditLog__3214EC0766CBEF2A") @default(autoincrement())
+  UserId    Int
+  Action    String?   @db.NVarChar(100)
+  Meta      String?   @db.NVarChar(Max)
+  CreatedAt DateTime? @default(now(), map: "DF__AuditLogs__Creat__52593CB8") @db.DateTime
+  Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__AuditLogs__UserI__534D60F1")
+}
+
+model Integrations {
+  Id           Int       @id(map: "PK__Integrat__3214EC07A7D7D2EC") @default(autoincrement())
+  UserId       Int
+  Provider     String?   @db.NVarChar(100)
+  AccessToken  String?   @db.NVarChar(Max)
+  RefreshToken String?   @db.NVarChar(Max)
+  ConnectedAt  DateTime? @default(now(), map: "DF__Integrati__Conne__46E78A0C") @db.DateTime
+  Users        Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Integrati__UserI__47DBAE45")
+}
+
+model Notifications {
+  Id      Int       @id(map: "PK__Notifica__3214EC078ED55443") @default(autoincrement())
+  UserId  Int
+  Message String?   @db.NVarChar(Max)
+  Type    String?   @db.NVarChar(20)
+  IsRead  Boolean?  @default(false, map: "DF__Notificat__IsRea__4D94879B")
+  SentAt  DateTime? @default(now(), map: "DF__Notificat__SentA__4E88ABD4") @db.DateTime
+  Users   Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Notificat__UserI__4F7CD00D")
+}
+
+model Payments {
+  Id         Int       @id(map: "PK__Payments__3214EC0781ADA3C3") @default(autoincrement())
+  UserId     Int
+  Amount     Decimal?  @db.Decimal(10, 2)
+  Status     String?   @db.NVarChar(20)
+  InvoiceUrl String?   @db.NVarChar(Max)
+  PaidAt     DateTime? @db.DateTime
+  Users      Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Payments__UserId__5629CD9C")
+}
+
+model Reports {
+  Id          Int       @id(map: "PK__Reports__3214EC0795DDC036") @default(autoincrement())
+  UserId      Int
+  Name        String?   @db.NVarChar(100)
+  Config      String?   @db.NVarChar(Max)
+  GeneratedAt DateTime? @db.DateTime
+  Format      String?   @db.NVarChar(10)
+  Users       Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Reports__UserId__4AB81AF0")
+}
+
+model Subscriptions {
+  Id        Int       @id(map: "PK__Subscrip__3214EC0727A8D9DB") @default(autoincrement())
+  UserId    Int
+  Plan      String?   @db.NVarChar(50)
+  IsActive  Boolean?  @default(true, map: "DF__Subscript__IsAct__59063A47")
+  StartedAt DateTime? @default(now(), map: "DF__Subscript__Start__59FA5E80") @db.DateTime
+  RenewedAt DateTime? @db.DateTime
+  Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Subscript__UserI__5AEE82B9")
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B6144327115") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+model Users {
+  Id            Int             @id(map: "PK__Users__3214EC07568AE5A4") @default(autoincrement())
+  Name          String?         @db.NVarChar(100)
+  GoogleID      String?         @db.NVarChar(100)
+  ProfilePic    String?         @db.NVarChar(100)
+  Email         String          @unique(map: "UQ__Users__A9D10534EFC25F9C") @db.NVarChar(150)
+  PasswordHash  String?         @db.NVarChar(Max)
+  IsVerified    Boolean?        @default(false, map: "DF__Users__IsVerifie__38996AB5")
+  CreatedAt     DateTime?       @default(now(), map: "DF__Users__CreatedAt__398D8EEE") @db.DateTime
+  Role          String?         @default("User") @db.NVarChar(100)
+  twofaEnabled  Boolean         @default(false)
+  ascii         String?
+  hex           String?
+  base32        String?
+  otpUrl        String?
+  permanent     Boolean         @default(false)
+  AuditLogs     AuditLogs[]
+  Integrations  Integrations[]
+  Notifications Notifications[]
+  Payments      Payments[]
+  Reports       Reports[]
+  Subscriptions Subscriptions[]
+  Widgets       Widgets[]
+  RefreshToken  RefreshToken[]
+  Jobs          Jobs[]
+}
+
+model RefreshToken {
+  Id        Int      @id @default(autoincrement())
+  Token     String   @unique
+  ExpiresAt DateTime
+  CreatedAt DateTime @default(now())
+  Revoked   Boolean  @default(false)
+
+  UserId Int
+  Users  Users @relation(fields: [UserId], references: [Id], onDelete: Cascade)
+}
+
+model Widgets {
+  Id        Int       @id(map: "PK__Widgets__3214EC07143CB218") @default(autoincrement())
+  UserId    Int
+  Title     String?   @db.NChar(30)
+  Type      String?   @db.NVarChar(50)
+  Config    String?   @db.NVarChar(Max)
+  Position  String?
+  IsVisible Boolean?  @default(true)
+  CreatedAt DateTime? @default(now(), map: "DF__Widgets__Created__4316F928") @db.DateTime
+  Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Widgets__UserId__440B1D61")
+}
+
+model Jobs {
+  Id       Int      @id @default(autoincrement())
+  UserId   Int
+  JobName  String
+  Period   Int
+  Config   String
+  IsActive Boolean  @default(true)
+  NextRun  DateTime
+  Users    Users    @relation(fields: [UserId], references: [Id], onUpdate: NoAction)
+}

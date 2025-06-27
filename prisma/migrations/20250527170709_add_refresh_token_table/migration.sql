@@ -1,0 +1,31 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- CreateTable
+CREATE TABLE [dbo].[RefreshToken] (
+    [Id] INT NOT NULL IDENTITY(1,1),
+    [Token] NVARCHAR(1000) NOT NULL,
+    [ExpiresAt] DATETIME2 NOT NULL,
+    [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [RefreshToken_CreatedAt_df] DEFAULT CURRENT_TIMESTAMP,
+    [Revoked] BIT NOT NULL CONSTRAINT [RefreshToken_Revoked_df] DEFAULT 0,
+    [UserId] INT NOT NULL,
+    CONSTRAINT [RefreshToken_pkey] PRIMARY KEY CLUSTERED ([Id]),
+    CONSTRAINT [RefreshToken_Token_key] UNIQUE NONCLUSTERED ([Token])
+);
+
+-- AddForeignKey
+ALTER TABLE [dbo].[RefreshToken] ADD CONSTRAINT [RefreshToken_UserId_fkey] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([Id]) ON DELETE CASCADE ON UPDATE CASCADE;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH
