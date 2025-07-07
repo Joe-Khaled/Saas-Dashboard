@@ -215,7 +215,7 @@ app.post('/verify-mfa',verifyToken,async(req,res)=>{
             permanent:true
           }
         })
-        const accessToken=await generateAccessJwt({email:user.Email,role:user.Role})
+        const accessToken=await generateAccessJwt({id:user.Id,email:user.Email,role:user.Role})
         res.status(200).json({Status:httpStatusText.SUCCESS,Verified:true,Message:"Logged in successfully!!",accessToken})
       }
       else{

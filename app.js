@@ -6,6 +6,7 @@ const authControllers=require('./controllers/auth')
 const userControllers=require('./controllers/user')
 const widgetControllers=require('./controllers/widget')
 const reportControllers=require('./controllers/report')
+const integrationsControllers=require('./controllers/integrations');
 const passport=require('passport');
 const passportSetup=require('./config/passport-setup');
 const session=require('express-session');
@@ -29,6 +30,7 @@ app.use('/api/auth',authControllers)
 app.use('/api/user',userControllers)
 app.use('/api/widget',widgetControllers)
 app.use('/api/report',reportControllers.router)
+app.use('/api/crm',integrationsControllers);
 
 checkReportsJobsNextRun();
 app.listen(PORT,()=>{

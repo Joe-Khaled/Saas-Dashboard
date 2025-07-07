@@ -1,7 +1,7 @@
 const jwt=require('jsonwebtoken');
 
 const generateAccessJwt=async(payload)=>{
-    const token=await jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn:'15m'});
+    const token=await jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn:'60m'});
     return token;
 }
 const generateRefreshJwt=async(payload)=>{
@@ -10,7 +10,7 @@ const generateRefreshJwt=async(payload)=>{
 }
 
 const generateTempJwt=async(payload)=>{
-    const token=await jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn:'4m'});
+    const token=await jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn:'1m'});
     return token;
 }
 

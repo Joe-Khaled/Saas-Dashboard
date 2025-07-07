@@ -12,7 +12,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@hubspot/api-client": "^13.0.0",
     "@prisma/client": "^6.8.2",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
@@ -29,6 +31,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pdfmake": "^0.2.20",
     "prisma": "^6.8.2",
+    "querystring": "^0.2.1",
     "roboto-font": "^0.1.0",
     "speakeasy": "^2.0.0"
   }

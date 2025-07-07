@@ -23,6 +23,7 @@ model Integrations {
   AccessToken  String?   @db.NVarChar(Max)
   RefreshToken String?   @db.NVarChar(Max)
   ConnectedAt  DateTime? @default(now(), map: "DF__Integrati__Conne__46E78A0C") @db.DateTime
+  ExpiresIn    DateTime?
   Users        Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Integrati__UserI__47DBAE45")
 }
 
@@ -88,19 +89,19 @@ model Users {
   Role          String?         @default("User") @db.NVarChar(100)
   twofaEnabled  Boolean         @default(false)
   ascii         String?
-  hex           String?
   base32        String?
+  hex           String?
   otpUrl        String?
   permanent     Boolean         @default(false)
   AuditLogs     AuditLogs[]
   Integrations  Integrations[]
+  Jobs          Jobs[]
   Notifications Notifications[]
   Payments      Payments[]
+  RefreshToken  RefreshToken[]
   Reports       Reports[]
   Subscriptions Subscriptions[]
   Widgets       Widgets[]
-  RefreshToken  RefreshToken[]
-  Jobs          Jobs[]
 }
 
 model RefreshToken {
@@ -109,20 +110,19 @@ model RefreshToken {
   ExpiresAt DateTime
   CreatedAt DateTime @default(now())
   Revoked   Boolean  @default(false)
-
-  UserId Int
-  Users  Users @relation(fields: [UserId], references: [Id], onDelete: Cascade)
+  UserId    Int
+  Users     Users    @relation(fields: [UserId], references: [Id], onDelete: Cascade)
 }
 
 model Widgets {
   Id        Int       @id(map: "PK__Widgets__3214EC07143CB218") @default(autoincrement())
   UserId    Int
-  Title     String?   @db.NChar(30)
   Type      String?   @db.NVarChar(50)
   Config    String?   @db.NVarChar(Max)
   Position  String?
-  IsVisible Boolean?  @default(true)
   CreatedAt DateTime? @default(now(), map: "DF__Widgets__Created__4316F928") @db.DateTime
+  IsVisible Boolean?  @default(true)
+  Title     String?   @db.NChar(30)
   Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Widgets__UserId__440B1D61")
 }
 
