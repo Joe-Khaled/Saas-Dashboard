@@ -2,6 +2,7 @@ require('dotenv').config()
 const passport=require('passport');
 const GoogleStrategy=require('passport-google-oauth20');
 const { PrismaClient } = require('@prisma/client');
+const { generateAccessJwt } = require('../utils/generateJwt');
 const prisma=new PrismaClient();
 
 
@@ -38,6 +39,8 @@ passport.use(
         if(oldUser)
         {
             console.log('user is:',oldUser);
+            const token=await generateAccessJwt({id:oldUser.Id,email:oldUser.Email,role:oldUser.Role})
+            console.log(token)
             done(null,oldUser);
         }
         else
@@ -51,6 +54,8 @@ passport.use(
                         ProfilePic:profile._json.picture
                     }
                 })
+                  const token=await generateAccessJwt({id:newUser.Id,email:newUser.Email,role:newUser.Role})
+                  console.log(token)
                 done(null,newUser);
             }
             catch(err){

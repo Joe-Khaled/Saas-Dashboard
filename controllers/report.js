@@ -65,6 +65,13 @@ const generateAndSendReport=async(userId,config,data)=>{
                 case "integration-status":
                 reportData = await generateIntegrationReport(config);
                 break;
+                case "crm-engagement":
+                tableBody=[
+                    ["id","portalId","active","lastUpdated","createdBy","type"
+                    ],
+                    ...data.map(item=>[item.id,item.portalId,item.active,item.lastUpdated,item.createdBy,item.type ])
+                ]
+                break;
                 default:
                 throw new Error("Unknown report type");
             }    
@@ -149,6 +156,7 @@ const generateUserActivityReport=async(config)=>{
         return error;
     }
 }
+
 const generateBillingReport=async(config)=>{
     const {type,format,filters}=config;
     const userId=Number(filters.userId);
@@ -216,6 +224,7 @@ router.post('/',async(req,res)=>{
         case "integration-status":
         reportData = await generateIntegrationReport(config);
         break;
+
         default:
         throw new Error("Unknown report type");
     }

@@ -6,11 +6,19 @@ const {generateAndSendReport , generateUserActivityReport ,
 }=require('../controllers/report');
 
 function checkReportsJobsNextRun(){
-    const today=new Date();
+    const start = new Date();
+    start.setHours(0, 0, 0, 0); // Start of today
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999); // End of today
+
     cron.schedule('0 0 */1 * *',async()=>{
         const todayReportJobs=await prisma.jobs.findMany({
             where:{
-                NextRun:today
+                NextRun:{
+                    gte:start,
+                    lte:end
+                }
             }
         })
         for(let i=0;i<todayReportJobs.length;i++){
