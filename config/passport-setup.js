@@ -32,13 +32,13 @@ passport.use(
     clientSecret: process.env.CLIENT_SECRET,
   },
   async (accessToken, refreshToken, profile, done) => {
-        
+        console.log(profile);
         const oldUser=await prisma.users.findFirst({
             where:{GoogleID:profile.id}    
         });
         if(oldUser)
         {
-            console.log('user is:',oldUser);
+            // console.log('user is:',oldUser);
             const token=await generateAccessJwt({id:oldUser.Id,email:oldUser.Email,role:oldUser.Role})
             console.log(token)
             done(null,oldUser);
@@ -55,7 +55,7 @@ passport.use(
                     }
                 })
                   const token=await generateAccessJwt({id:newUser.Id,email:newUser.Email,role:newUser.Role})
-                  console.log(token)
+                  // console.log(token)
                 done(null,newUser);
             }
             catch(err){

@@ -17,14 +17,29 @@ model AuditLogs {
 }
 
 model Integrations {
-  Id           Int       @id(map: "PK__Integrat__3214EC07A7D7D2EC") @default(autoincrement())
-  UserId       Int
-  Provider     String?   @db.NVarChar(100)
-  AccessToken  String?   @db.NVarChar(Max)
-  RefreshToken String?   @db.NVarChar(Max)
-  ConnectedAt  DateTime? @default(now(), map: "DF__Integrati__Conne__46E78A0C") @db.DateTime
-  ExpiresIn    DateTime?
-  Users        Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Integrati__UserI__47DBAE45")
+  Id                Int                 @id(map: "PK__Integrat__3214EC07A7D7D2EC") @default(autoincrement())
+  UserId            Int
+  Provider          String?             @db.NVarChar(100)
+  AccessToken       String?             @db.NVarChar(Max)
+  RefreshToken      String?             @db.NVarChar(Max)
+  ConnectedAt       DateTime?           @default(now(), map: "DF__Integrati__Conne__46E78A0C") @db.DateTime
+  ExpiresIn         DateTime?
+  Users             Users               @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Integrati__UserI__47DBAE45")
+  Integration_Users Integration_Users[]
+  Engagement        Engagement[]
+  Attendance        Attendance[]
+  Employees         Employees[]
+}
+
+model Integration_Users {
+  Id            String       @id @unique @db.NVarChar(255)
+  Email         String       @unique @db.NVarChar(150)
+  FirstName     String       @db.NVarChar(30)
+  LastName      String       @db.NVarChar(30)
+  RoleIds       String       @db.NVarChar(60)
+  SuperAdmin    Boolean
+  IntegrationId Int
+  Integration   Integrations @relation(fields: [IntegrationId], references: [Id], onUpdate: NoAction)
 }
 
 model Notifications {
@@ -87,6 +102,8 @@ model Users {
   IsVerified    Boolean?        @default(false, map: "DF__Users__IsVerifie__38996AB5")
   CreatedAt     DateTime?       @default(now(), map: "DF__Users__CreatedAt__398D8EEE") @db.DateTime
   Role          String?         @default("User") @db.NVarChar(100)
+  Phone         String?         @db.NVarChar(100)
+  Gender        String?         @db.NVarChar(12)
   twofaEnabled  Boolean         @default(false)
   ascii         String?
   base32        String?
@@ -102,6 +119,7 @@ model Users {
   Reports       Reports[]
   Subscriptions Subscriptions[]
   Widgets       Widgets[]
+  Employees     Employees[]
 }
 
 model RefreshToken {
@@ -135,4 +153,35 @@ model Jobs {
   IsActive Boolean  @default(true)
   NextRun  DateTime
   Users    Users    @relation(fields: [UserId], references: [Id], onUpdate: NoAction)
+}
+
+model Engagement {
+  Id            Int          @id @default(autoincrement())
+  IntegrationId Int
+  Type          String // example: "email", "call"
+  Subject       String?
+  Timestamp     DateTime
+  Details       String //Json
+  Integration   Integrations @relation(fields: [IntegrationId], references: [Id], onUpdate: NoAction)
+}
+
+model Attendance {
+  Id            Int          @id @default(autoincrement())
+  IntegrationId Int
+  EmployeeId    String
+  Status        String
+  Date          DateTime
+  Integration   Integrations @relation(fields: [IntegrationId], references: [Id], onUpdate: NoAction)
+}
+
+model Employees {
+  Id             Int    @id @default(autoincrement())
+  UserId         Int
+  IntegrationId  Int
+  HubspotOwnerId String // CRM Owner ID from HubSpot
+
+  User        Users        @relation(fields: [UserId], references: [Id])
+  Integration Integrations @relation(fields: [IntegrationId], references: [Id])
+
+  @@unique([HubspotOwnerId, IntegrationId]) // optional: to prevent duplicate owner in same integration
 }

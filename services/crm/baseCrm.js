@@ -3,7 +3,7 @@ const httpStatusText = require("../../utils/httpStatusText");
 const jwt=require('jsonwebtoken');
 const { PrismaClient }=require('@prisma/client');
 const prisma=new PrismaClient()
-
+const axios=require('axios');
 async function getTokens(api,code){
     const response= await fetch(api,{
         method:'POST',
@@ -26,6 +26,15 @@ async function getTokens(api,code){
         return {error:err};
     }
     const tokens=await response.json();
+    const relatedData=await fetch(`https://api.hubapi.com/oauth/v1/access-tokens/:${tokens.access_token}`,{
+        method:'GET',
+        headers:{
+            Authorization: `Bearer ${tokens.access_token}`,
+            'Content-Type': 'application/json'
+
+        },
+    })
+    console.log(relatedData);
     return tokens;
 }
 
@@ -38,11 +47,12 @@ async function integrationSaving(tokens,stateToken,provider) {
     ExpiresIn=new Date(ExpiresIn);
     
     try{
+        let integrationId=0;
         const savedIntegration=await prisma.integrations.findFirst({
             where:{UserId:stateTokenData.id,Provider:provider}
         })
         if(!savedIntegration){
-            await prisma.integrations.create({
+            const newIntegration=await prisma.integrations.create({
                 data:{
                     UserId:stateTokenData.id,
                     Provider:provider,
@@ -51,8 +61,10 @@ async function integrationSaving(tokens,stateToken,provider) {
                     ExpiresIn       
                 }
             })
+            integrationId=newIntegration.Id;
         }
-        return {message:'Connected to CRM successfully',statusCode:200,statusText:httpStatusText.SUCCESS}
+        if(integrationId==0)integrationId=savedIntegration.Id
+        return {message:'Connected to CRM successfully',statusCode:200,statusText:httpStatusText.SUCCESS,integrationId}
     }
     catch (err) {
         console.log(err);
@@ -83,7 +95,7 @@ async function hubspotRefreshAccessToken(refreshToken) {
     return await response.json();
 }
 
-async function checkingIntegrationData(userId,provider) {
+async function  checkingIntegrationData(userId,provider) {
         const integrationData=await prisma.integrations.findFirst({
             where:{UserId:userId,Provider:provider}
         })
@@ -101,9 +113,10 @@ async function checkingIntegrationData(userId,provider) {
                     ExpiresIn:new Date(Date.now() + response.expires_in * 1000)
                 }
             })
-            accessToken=response.access_token;
+            accessToken={accessToken:response.access_token,};
         }
-        else accessToken=integrationData.AccessToken;
+         else accessToken={accessToken:integrationData.AccessToken}
+        accessToken.integrationId=integrationData.Id
         return accessToken;
 }
 
@@ -136,6 +149,28 @@ async function pullData(accessToken,api,limit,properties,entity) {
         after = data.paging.next.after;
     }
     return elements;
+}
+
+async function pullDataById(accessToken,api,properties) {
+     try {
+        const response = await axios.get(api, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          },
+          params: {
+            properties: properties,
+            archived: true // include archived if needed
+          }
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.error('Contact not found');
+          return null;
+        }
+        console.error('Error fetching contact:', error.response?.data || error.message);
+        throw error;
+      }
 }
 
  function mappingElements(elements,entity) {
@@ -176,15 +211,24 @@ async function pullData(accessToken,api,limit,properties,entity) {
     }
     return elements;
 }
-async function generateAnalyticsReport(config){
-    const{format,filters} = config;
+// async function generateAnalyticsReport(config){
+//     const{format,filters} = config;
     
-}
+// }
 
+async function getSingleUserData(integrationUserId) {
+    const userData=await prisma.integration_Users.findFirst({
+        where:{
+        Id:String(integrationUserId)
+    }});
+    return userData;
+}
 module.exports={
     getTokens,
     integrationSaving,
     checkingIntegrationData,
     pullData,
-    mappingElements
+    pullDataById,
+    mappingElements,
+    getSingleUserData
 }
