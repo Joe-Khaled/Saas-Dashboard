@@ -1,12 +1,11 @@
 const express=require('express');
 const {PrismaClient}=require('@prisma/client')
 const prisma=new PrismaClient();
-const router=express.Router();
 const appError=require('../utils/appError')
 const httpStatusText=require('../utils/httpStatusText')
 
 //Make new widget
-router.post('/',async(req,res)=>{
+const makeNewWidget=async(req,res)=>{
     let {userId,title,type,config,position}=req.body;
     const checkUser=await prisma.users.findFirst({
         where:{Id:userId}
@@ -46,10 +45,10 @@ router.post('/',async(req,res)=>{
         return;
     }
     
-})
+}
 
 //Retrieve all widgets 
-router.get('/',async(req,res)=>{
+const retriveAllWidgets=async(req,res)=>{
      const {page,limit,type}=req.query;
      const userId=Number(req.body.userId);
 
@@ -70,10 +69,10 @@ router.get('/',async(req,res)=>{
         res.status(400).json(error);
         return;
      }
-})
+}
 
 //Retrieve single widget using id 
-router.get('/:id',async(req,res)=>{
+const retriveWidgetById=async(req,res)=>{
     const widgetId=Number(req.params.id);
     try {
         const widget=await prisma.widgets.findFirst({
@@ -91,10 +90,10 @@ router.get('/:id',async(req,res)=>{
         res.status(400).json(error);
         console.log(err);
     }
-})
+}
 
 //update single widget using id 
-router.put('/:id',async(req,res)=>{
+const updateWidgetById=async(req,res)=>{
     const widgetId=Number(req.params.id);
     let {type,config,position,visibility}=req.body;
     if(config){config=JSON.stringify(config);}
@@ -112,10 +111,10 @@ router.put('/:id',async(req,res)=>{
         res.status(400).json(error);
         console.log(err);
     }
-})
+}
 
 //Delete widget using id 
-router.delete('/:id',async(req,res)=>{
+const deleteWidgetById=async(req,res)=>{
     const widgetId=Number(req.params.id);
     try {
         const deletedWidget=await prisma.widgets.delete({
@@ -127,6 +126,8 @@ router.delete('/:id',async(req,res)=>{
         res.status(400).json(error);
         console.log(error)
     }
-})
+}
 
-module.exports=router;
+module.exports={
+    makeNewWidget,retriveAllWidgets,retriveWidgetById,updateWidgetById,deleteWidgetById
+};

@@ -1,6 +1,3 @@
-const express=require('express');
-const passport = require('passport');
-const app=express.Router();
 const Joi=require('joi');
 const { PrismaClient } = require('@prisma/client');
 const appError = require('../utils/appError');
@@ -8,7 +5,6 @@ const httpStatusText = require('../utils/httpStatusText');
 const prisma=new PrismaClient()
 const bcrypt=require('bcrypt');
 const speakeasy=require('speakeasy');
-const verifyToken=require('../middlewares/verifyToken')
 const jwt=require('jsonwebtoken');
 const { generateAccessJwt, generateRefreshJwt,generateTempJwt } = require('../utils/generateJwt');
 const authSchema = Joi.object({
@@ -41,7 +37,7 @@ const authSchema = Joi.object({
 });
 
 //Register - Sign up -> post
-app.post('/register',async(req,res)=>{
+const register=async(req,res)=>{
     const {error,value}=authSchema.validate(req.body);
     if(error)
     {
@@ -67,7 +63,7 @@ app.post('/register',async(req,res)=>{
         Email:value.email,
         PasswordHash:PasswordHash,
         IsVerified:false,
-        Role:req.query.role||'User',
+        Role:req.query.role||'USER',
         Phone:value.phone,
         Gender:value.gender
       }
@@ -93,10 +89,10 @@ app.post('/register',async(req,res)=>{
   })
   .status(201).json({Message:'New user created successfully',newUser,accessToken:accessToken});
     
-})
+}
 
 //refresh-token
-app.post('/refresh-token',async(req,res)=>{
+const refreshToken=async(req,res)=>{
   const refreshToken=req.cookies.refreshToken;
   if(!refreshToken)
   {
@@ -147,7 +143,7 @@ app.post('/refresh-token',async(req,res)=>{
   const newRefreshToken=await generateRefreshJwt({email:myUserData.Email,role:myUserData.Role})
   await prisma.refreshToken.update({
     where:{
-      Token:userRefreshToken
+      Token:userRefreshToken.Token
     },
     data:{
       Token:newRefreshToken
@@ -162,10 +158,10 @@ app.post('/refresh-token',async(req,res)=>{
     maxAge: 1000 * 60 * 60 * 24 * 7 
   })
   .status(200).json({accessToken:accessToken});
-})
+}
 
 //Login -> post
-app.post('/login',async(req,res)=>{
+const login=async(req,res)=>{
     const {email,password}=req.body;
     const userExist=await prisma.users.findFirst({
       where:{
@@ -212,12 +208,12 @@ app.post('/login',async(req,res)=>{
       sameSite:'strict',
       maxAge: 1000 * 60 * 60 * 24 * 7 
     })
-    .status(200).json({Message:"Logged in successfully!!",token:accessToken,accessToken:accessToken});
-})
+    .status(200).json({Message:"Logged in successfully!!",token:accessToken});
+}
 
 
 //LOGOUT -> POST
-app.post('/logout',async(req,res)=>{
+const logout=async(req,res)=>{
   const refreshToken=req.cookies.refreshToken;
 
   if(!refreshToken)
@@ -240,10 +236,10 @@ app.post('/logout',async(req,res)=>{
   sameSite: 'strict',
   })
   .status(200).json({ message: 'Logged out successfully' });
-})
+}
 
 //Change password - POST
-app.post('/change-password',verifyToken,async(req,res)=>{
+const changePassword=async(req,res)=>{
 const {currentPassword,newPassword}=req.body;
 const user=req.currentUser
 let userSavedPassword=await prisma.users.findUnique({
@@ -282,11 +278,10 @@ const passwordCompare=await bcrypt.compare(currentPassword,userSavedPassword);
     const error=appError.create(err.message,400,'Error');
     res.status(400).json(error);
   }
-})
-
+}
 
 //setup mfa
-app.post('/setup-mfa',async(req,res)=>{
+const setupMfa=async(req,res)=>{
     const userId=req.body.userId;
     const temp_secret=speakeasy.generateSecret();
     try {
@@ -305,9 +300,9 @@ app.post('/setup-mfa',async(req,res)=>{
         console.log(err);
         res.status(500).json({message:'Error generating the secret'})   
     }
-})
+}
 
-app.post('/confirm-mfa',async(req,res)=>{
+const confirmMfa=async(req,res)=>{
     const {userId,token}=req.body;
     const user=await prisma.users.findFirst({
       where:{Id:userId}, 
@@ -325,12 +320,10 @@ app.post('/confirm-mfa',async(req,res)=>{
     else{
       res.json({Status:httpStatusText.FAILED,Verified:false,Message:'Failed to login'})
     }
-})
-
-
+}
 
 //verify mfa
-app.post('/verify-mfa',verifyToken,async(req,res)=>{
+const verifyMfa=async(req,res)=>{
     const token=req.body.token;
     const userId=req.currentUser.id;
     const user=await prisma.users.findFirst({
@@ -380,18 +373,10 @@ app.post('/verify-mfa',verifyToken,async(req,res)=>{
         console.log(err);
         res.status(500).json({message:'Error finding the user'})   
     }
-})
+}
 
-//Login using google -> post
-app.get('/google',passport.authenticate('google',{
-    scope:['profile','email']
-}))
 
-//Redirect url -> get
-app.get('/google/redirect',passport.authenticate('google'),(req,res)=>{
-    res.render('redirect');
-})
-app.post('/oauth-data',async(req,res)=>{
+const oauthData=async(req,res)=>{
   const{email,password,phone,gender}=req.body;
   const hashedPassword=await bcrypt.hash(password,8);
   try {
@@ -408,6 +393,8 @@ app.post('/oauth-data',async(req,res)=>{
     const failure=appError.create(err.message,400,httpStatusText.ERROR);
     res.status(400).json(failure);
   }
-})
+}
 
-module.exports=app
+module.exports={
+  register,refreshToken,login,logout,changePassword,setupMfa,confirmMfa,verifyMfa,oauthData
+}

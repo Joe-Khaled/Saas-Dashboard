@@ -1,15 +1,12 @@
-const express=require('express');
-const router=express.Router();
 const { PrismaClient }=require('@prisma/client');
 const prisma=new PrismaClient()
-const verifyToken = require('../middlewares/verifyToken');
 const baseCrm=require('../services/crm/baseCrm');
 const { generateAndSendReport } = require('./report');
 
-router.get('',(req,res)=>{
-    res.render('crm.ejs');
-})
-router.get('/oauth/callback',async(req,res)=>{
+// router.get('',(req,res)=>{
+//     res.render('crm.ejs');
+// })
+const OAuthCallback=async(req,res)=>{
     const code=req.query.code;
     const stateToken=req.query.state;
     
@@ -23,10 +20,9 @@ router.get('/oauth/callback',async(req,res)=>{
 
     if(integrationSaving.statusCode==200)res.status(200).json(integrationSaving)
     else res.status(400).json(integrationSaving)
-})
+}
 
-
-router.get('/contacts',verifyToken,async(req,res)=>{
+const contacts=async(req,res)=>{
     const userId=req.currentUser.id;
 
     const integrationData=await baseCrm.checkingIntegrationData(userId,'hubspot')
@@ -39,10 +35,10 @@ router.get('/contacts',verifyToken,async(req,res)=>{
     // const mappedContacts=baseCrm.mappingElements(elements,'contacts')
     
     res.status(200).json({contacts})
-})
+}
 
 
-router.get('/engagements',verifyToken,async(req,res)=>{
+const engagements=async(req,res)=>{
     const userId=req.currentUser.id;
 
     const integrationData=await baseCrm.checkingIntegrationData(userId,'hubspot')
@@ -104,9 +100,9 @@ router.get('/engagements',verifyToken,async(req,res)=>{
     else{
         res.status(200).json({engagements:mappedEngagements,totalEngagements:filteredEngagements.length})
     }
-})
+}
 
-router.get('/engagements/tasks',verifyToken,async(req,res)=>{
+const tasks=async(req,res)=>{
     const userId=req.currentUser.id;
 
     const integrationData=await baseCrm.checkingIntegrationData(userId,'hubspot')
@@ -129,9 +125,9 @@ router.get('/engagements/tasks',verifyToken,async(req,res)=>{
     // console.log(new Date().getMonth());
     res.status(200).json({engagements:mappedEngagements})
     // console.log(new Date());
-})
+}
 
-router.post('/users',verifyToken,async(req,res)=>{
+const users=async(req,res)=>{
       const userId=req.currentUser.id;
 
       const integrationData=await baseCrm.checkingIntegrationData(userId,'hubspot')
@@ -172,25 +168,33 @@ router.post('/users',verifyToken,async(req,res)=>{
     
       res.status(200).json({Status:200,Message:"Users added successfully"})
       
-})
-router.get('/user/:id',async(req,res)=>{
+}
+const userById=async(req,res)=>{
     const userId=req.params.id;
     
     const user=await baseCrm.getSingleUserData(userId);
     res.status(200).json(user);
-})
+}
+
+const deleteById=async(req,res)=>{
+    await prisma.integrations.delete({
+        where:{Id:Number(req.params.id)}
+    })
+    res.status(200).json({Message:"Deleted Successully"});
+}
+
+module.exports={
+    OAuthCallback,contacts,engagements,tasks,users,userById,deleteById
+}
+
+
+
+
 
 
 // router.post('/webhooks/hubspot',async(req,res)=>{
 //     const event=req.body
 // })
-
-router.delete('/:id',async(req,res)=>{
-    await prisma.integrations.delete({
-        where:{Id:Number(req.params.id)}
-    })
-    res.status(200).json({Message:"Deleted Successully"});
-})
 
 // router.get('/test',verifyToken,async(req,res)=>{
 //     const userId=req.currentUser.id;
@@ -223,9 +227,6 @@ router.delete('/:id',async(req,res)=>{
 // }
 //     res.status(200).json('saved successfully');
 // })
-module.exports=router;
-
-
 
 /*
 maintainances here :

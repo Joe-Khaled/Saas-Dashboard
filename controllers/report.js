@@ -6,8 +6,6 @@ const httpStatusText = require('../utils/httpStatusText');
 const { Parser }=require('json2csv');
 const exceljs=require('exceljs');
 const path = require('path');
-const cron=require('node-cron');
-const router=express.Router();
 const prisma=new PrismaClient()
 const pdfPrinter=require('pdfmake');
 const sendEmailWithAttachment=require('../utils/email');
@@ -211,7 +209,7 @@ const generateIntegrationReport=async(config)=>{
     }
 }
 //Generating new report endpoint
-router.post('/',async(req,res)=>{
+const generateNewReport=async(req,res)=>{
     const {userId,name,config,periodic_report,period_in_weeks}=req.body;
      let reportData;
     switch (config.type) {
@@ -248,10 +246,10 @@ router.post('/',async(req,res)=>{
         })  
         console.log('job created successfully')
     }
-})
+}
 
 module.exports={
-    router,
+    generateNewReport,
     generateAndSendReport,
     generateUserActivityReport,
     generateBillingReport,
