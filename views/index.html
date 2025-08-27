@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button>Checkout</button>
+    <script>
+        const button=document.querySelector("button")
+        button.addEventListener("click",()=>{
+            fetch("/api/subscriptions/create-checkout-session",{
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify({
+                    items:[{id:2,quantity:1}]
+                })
+            }).then((res) => {
+           if(res.ok)return res.json()
+           return res.json().then(json => Promise.reject(json)) 
+        }).then(({url})=>{
+            console.log(url)
+            window.location=url
+        }).catch((e) => {
+            console.log(e.error)
+        });
+    })
+    </script>
+</body>
+</html>
