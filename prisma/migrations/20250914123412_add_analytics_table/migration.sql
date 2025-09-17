@@ -1,0 +1,29 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- CreateTable
+CREATE TABLE [dbo].[Analytics] (
+    [Id] INT NOT NULL IDENTITY(1,1),
+    [UserId] INT NOT NULL,
+    [EventType] NVARCHAR(1000) NOT NULL,
+    [MetaData] NVARCHAR(1000) NOT NULL,
+    [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [Analytics_CreatedAt_df] DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT [Analytics_pkey] PRIMARY KEY CLUSTERED ([Id])
+);
+
+-- AddForeignKey
+ALTER TABLE [dbo].[Analytics] ADD CONSTRAINT [Analytics_UserId_fkey] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([Id]) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

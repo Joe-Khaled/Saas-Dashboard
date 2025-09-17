@@ -7,16 +7,17 @@
 </head>
 <body>
     <button>Checkout</button>
-    <script>
+    <script>    
         const button=document.querySelector("button")
         button.addEventListener("click",()=>{
             fetch("/api/subscriptions/create-checkout-session",{
                 method:'POST',
                 headers:{
-                    'Content-Type':'application/json'
+                    'Content-Type':'application/json',
+                    'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbGliQGdtYWlsLmNvbSIsInJvbGUiOiJVc2VyIiwiaWF0IjoxNzU4MDYxMzYwLCJleHAiOjE3NTgwNjIyNjB9.RD1rTALImtm06xAkiKHXzV62BTugKsZPUNSTgYZp8Pc'
                 },
                 body:JSON.stringify({
-                    items:[{id:2,quantity:1}]
+                    items:[{id:2,quantity:1}],
                 })
             }).then((res) => {
            if(res.ok)return res.json()

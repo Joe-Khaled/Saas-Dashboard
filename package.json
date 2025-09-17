@@ -16,6 +16,7 @@
     "@prisma/client": "^6.12.0",
     "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -35,6 +36,8 @@
     "pdfmake": "^0.2.20",
     "querystring": "^0.2.1",
     "roboto-font": "^0.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "speakeasy": "^2.0.0",
     "stripe": "^18.5.0"
   },

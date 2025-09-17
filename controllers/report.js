@@ -1,12 +1,12 @@
 const express=require('express');
 const fs=require('fs');
 const { PrismaClient }=require('@prisma/client');
+const prisma=new PrismaClient()
 const appError = require('../utils/appError');
 const httpStatusText = require('../utils/httpStatusText');
 const { Parser }=require('json2csv');
 const exceljs=require('exceljs');
 const path = require('path');
-const prisma=new PrismaClient()
 const pdfPrinter=require('pdfmake');
 const sendEmailWithAttachment=require('../utils/email');
 const userNotExist=async(userId)=>{

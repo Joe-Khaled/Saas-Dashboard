@@ -105,7 +105,12 @@ const refreshToken=async(req,res)=>{
     }
   })
   const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
-  const UserId = decoded.id;
+  const UserEmail=decoded.email;
+  let UserId =await prisma.users.findFirst({
+    select:{Id:true},
+    where:{Email:UserEmail}    
+  });
+  UserId=UserId.Id
   const now=new Date();
   if(userRefreshToken.Revoked)
   {

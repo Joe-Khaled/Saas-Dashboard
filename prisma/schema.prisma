@@ -55,11 +55,22 @@ model Notifications {
 model Payments {
   Id         Int       @id(map: "PK__Payments__3214EC0781ADA3C3") @default(autoincrement())
   UserId     Int
-  Amount     Decimal?  @db.Decimal(10, 2)
+  Amount     Decimal   @db.Decimal(10, 2)
   Status     String?   @db.NVarChar(20)
+  InvoiceId  String?   @unique @db.NVarChar(50)
   InvoiceUrl String?   @db.NVarChar(Max)
   PaidAt     DateTime? @db.DateTime
   Users      Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Payments__UserId__5629CD9C")
+}
+
+model Subscriptions {
+  Id        Int       @id(map: "PK__Subscrip__3214EC0727A8D9DB") @default(autoincrement())
+  UserId    Int       @unique
+  Plan      String?   @db.NVarChar(50)
+  IsActive  Boolean?  @default(true, map: "DF__Subscript__IsAct__59063A47")
+  StartedAt DateTime? @default(now(), map: "DF__Subscript__Start__59FA5E80") @db.DateTime
+  RenewedAt DateTime? @db.DateTime
+  Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Subscript__UserI__5AEE82B9")
 }
 
 model Reports {
@@ -70,16 +81,6 @@ model Reports {
   GeneratedAt DateTime? @db.DateTime
   Format      String?   @db.NVarChar(10)
   Users       Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Reports__UserId__4AB81AF0")
-}
-
-model Subscriptions {
-  Id        Int       @id(map: "PK__Subscrip__3214EC0727A8D9DB") @default(autoincrement())
-  UserId    Int
-  Plan      String?   @db.NVarChar(50)
-  IsActive  Boolean?  @default(true, map: "DF__Subscript__IsAct__59063A47")
-  StartedAt DateTime? @default(now(), map: "DF__Subscript__Start__59FA5E80") @db.DateTime
-  RenewedAt DateTime? @db.DateTime
-  Users     Users     @relation(fields: [UserId], references: [Id], onUpdate: NoAction, map: "FK__Subscript__UserI__5AEE82B9")
 }
 
 model sysdiagrams {
@@ -120,6 +121,7 @@ model Users {
   Subscriptions Subscriptions[]
   Widgets       Widgets[]
   Employees     Employees[]
+  Analytics     Analytics[]
 }
 
 model RefreshToken {
@@ -184,4 +186,14 @@ model Employees {
   Integration Integrations @relation(fields: [IntegrationId], references: [Id])
 
   @@unique([HubspotOwnerId, IntegrationId]) // optional: to prevent duplicate owner in same integration
+}
+
+model Analytics {
+  Id        Int      @id @default(autoincrement())
+  UserId    Int
+  EventType String
+  MetaData  String
+  CreatedAt DateTime @default(now())
+
+  User Users @relation(fields: [UserId], references: [Id])
 }
